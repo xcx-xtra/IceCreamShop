@@ -3,11 +3,13 @@
 # Date: 2/2/2025
 
 # Store our ice cream shop's menu items
-flavors = ["vanilla", "caramel", "mint"]  # List of available ice cream flavors
+flavors = ["vanilla", "caramel", "mint", "chocolate", "strawberry", "cookie dough"]  # List of available ice cream flavors
 toppings = ["sprinkles", "nuts", "cherry"]  # List of available toppings
+cone_types = ["cake", "sugar", "waffle"]  # List of available cone types
 prices = {
     "scoop": 2.50,  # Price per scoop of ice cream
-    "topping": 0.50  # Price per topping
+    "topping": 0.50,  # Price per topping
+    "cone": 1.00  # Price per cone
 }
 
 def display_menu():
@@ -22,9 +24,15 @@ def display_menu():
     print("\nAvailable Toppings:")
     for topping in toppings:  # Loop through the toppings list and display each topping
         print(f"- {topping}")
+    
+    print("\nAvailable Cone Types:")
+    for cone in cone_types:  # Loop through the cone types list and display each cone type
+        print(f"- {cone}")
+    
     print("\nPrices:")
     print(f"Scoops: ${prices['scoop']:.2f} each")  # Display the price per scoop
     print(f"Toppings: ${prices['topping']:.2f} each")  # Display the price per topping
+    print(f"Cone: ${prices['cone']:.2f}")  # Display the price per cone
 
 def get_flavors():
     """
@@ -92,13 +100,39 @@ def get_toppings():
     
     return chosen_toppings  # Return the list of chosen toppings
 
-def calculate_total(num_scoops, num_toppings):
+def get_cone_type():
+    """
+    Prompts the user to select a cone type.
+    Returns the chosen cone type.
+    """
+    attempts = 0  # Counter to track invalid attempts for cone type selection
+
+    # Loop to get the cone type from the user
+    while True:
+        cone = input("\nEnter the cone type (cake, sugar, waffle): ").lower()  # Prompt for cone type input
+        if cone in cone_types:  # Check if the cone type is in the available cone types list
+            return cone  # Return the chosen cone type
+        print("Sorry, that cone type isn't available. Available cone types:", ", ".join(cone_types))  # Error message for invalid cone type
+        attempts += 1
+        if attempts >= 3:  # Exit if too many invalid attempts
+            print("Too many invalid attempts. Exiting.")
+            return None  # Return None if the user fails to provide valid input
+
+def calculate_total(num_scoops, num_toppings, cone_type):
     """Calculates the total cost of the order"""
     scoop_cost = num_scoops * prices["scoop"]
     topping_cost = num_toppings * prices["topping"]
-    return scoop_cost + topping_cost
+    cone_cost = prices["cone"] if cone_type else 0  # Add cone cost if a cone type is selected
+    total = scoop_cost + topping_cost + cone_cost
+    
+    # Apply 10% discount for orders over $10
+    if total > 10:
+        total *= 0.90  # Apply 10% discount
+        print("\nYou've received a 10% discount for orders over $10!")
+    
+    return total
 
-def print_receipt(num_scoops, chosen_flavors, chosen_toppings):
+def print_receipt(num_scoops, chosen_flavors, chosen_toppings, cone_type):
     """Prints a nice receipt for the customer"""
     print("\n=== Your Ice Cream Order ===")
     for i in range(num_scoops):
@@ -109,7 +143,10 @@ def print_receipt(num_scoops, chosen_flavors, chosen_toppings):
         for topping in chosen_toppings:
             print(f"- {topping.title()}")
     
-    total = calculate_total(num_scoops, len(chosen_toppings))
+    if cone_type:
+        print(f"\nCone Type: {cone_type.title()}")
+    
+    total = calculate_total(num_scoops, len(chosen_toppings), cone_type)
     print(f"\nTotal: ${total:.2f}")
     
     # Save order to file
@@ -128,7 +165,8 @@ def main():
             print("No valid flavors selected. Exiting.")
             break
         chosen_toppings = get_toppings()
-        print_receipt(num_scoops, chosen_flavors, chosen_toppings)
+        cone_type = get_cone_type()
+        print_receipt(num_scoops, chosen_flavors, chosen_toppings, cone_type)
         
         another_order = input("\nWould you like to place another order? (yes/no): ").lower()
         if another_order != 'yes':
